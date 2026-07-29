@@ -148,6 +148,104 @@ Detaliul care le leagă: `CalculeazaCost` primește greutatea și distanța ca *
 
 În bonusul exercițiului ai scris `LivrareCuReducere`: o strategie care primește **altă strategie** în constructor și îi ajustează rezultatul. O strategie care împachetează o strategie — asta e deja un **Decorator** (lecția 4). Strategy ți l-a arătat gratis; peste trei lecții doar îi punem numele.
 
+\newpage
+
+# Lecția 2 — Observer
+
+> **Un cuvânt:** un eveniment, N reacții. O sursă își schimbă starea și îi anunță pe toți cei abonați — fără să știe cine sunt sau ce fac.
+
+## Problema (exercițiul `ex2`: starea comenzii)
+
+Aceeași comandă, dar acum urmărim starea ei: `Plasata → Expediata → Livrata`. La fiecare schimbare, mai multe părți reacționează: clientul primește email, se scrie în jurnal, depozitul se pregătește. Prima variantă:
+
+```csharp
+public void SchimbaStare(string stareNoua)
+{
+    Stare = stareNoua;
+    email.Trimite(stareNoua);
+    jurnal.Scrie(stareNoua);
+    depozit.Pregateste(stareNoua);
+}
+```
+
+`Comanda` ajunge să cunoască fiecare parte pe nume. Marketingul cere o notificare push → redeschizi `SchimbaStare` și mai adaugi o linie. Iar o clasă care ar trebui să se ocupe de *comandă* știe acum despre email, SMS, jurnal, depozit, push. Aceeași durere de open/closed ca la Strategy — dar pe altă axă: la Strategy se schimba **cum se calculează**, aici se schimbă **cine reacționează**.
+
+## Ideea
+
+Inversezi dependența. `Comanda` (rolul de **Subject**) nu mai cunoaște nicio parte concretă — ține o listă de observatori care au semnat un contract, și când se schimbă starea îi anunță pe toți, la fel:
+
+```csharp
+public interface IObservator
+{
+    void Actualizeaza(string stareNoua);
+}
+
+public void SchimbaStare(string stareNoua)
+{
+    Stare = stareNoua;
+    for (int i = 0; i < observatori.Length; i++)
+    {
+        observatori[i].Actualizeaza(stareNoua);
+    }
+}
+```
+
+O parte nouă care vrea să reacționeze = o clasă nouă care implementează `IObservator`. `Comanda` rămâne neatinsă.
+
+## Cele trei roluri
+
+| Rol | În exercițiu | Ce face |
+|---|---|---|
+| **Subject** (sursa) | `Comanda` | ține observatorii, își schimbă starea, îi anunță pe toți |
+| **Observer** (contractul) | `IObservator` | declară `Actualizeaza(...)` |
+| **ConcreteObserver** | `NotificatorEmail`, `JurnalLivrare`, `PanouDepozit` | fiecare reacționează în felul lui |
+
+```
+                 Comanda (Subject)
+                 - observatori: IObservator[]
+                 - SchimbaStare() -> anunta toti
+                        |
+          +-------------+-------------+
+          v             v             v
+  NotificatorEmail  JurnalLivrare  PanouDepozit
+        (fiecare semneaza IObservator)
+```
+
+## Strategy vs Observer — aceeași unealtă, altă direcție
+
+Amândouă folosesc un contract și polimorfism. Diferența e **direcția** și **numărul**:
+
+| | Strategy (ex1) | Observer (ex2) |
+|---|---|---|
+| Câți colaboratori | UNU (strategia curentă) | MULȚI (toți observatorii) |
+| Ce face contextul | îi cere ceva: „cât costă?" | îi anunță: „s-a schimbat starea" |
+| Așteaptă răspuns? | DA — primește un cost înapoi | NU — anunță și merge mai departe |
+| Cine e în control | contextul întreabă când vrea | evenimentul împinge spre toți |
+
+„A întreba" vs „a anunța" — asta e distincția de fixat. Observer nu așteaptă nimic înapoi; de-aia `Actualizeaza` returnează `void`.
+
+## Când îl folosești
+
+- O schimbare într-un loc trebuie să declanșeze reacții în **mai multe** locuri independente.
+- Nu vrei ca sursa să cunoască reacțiile (le poți adăuga/scoate fără s-o atingi).
+- Reacțiile nu trebuie coordonate între ele și nu întorc nimic sursei.
+
+## Când NU îl folosești
+
+- Ai **un singur** ascultător și va rămâne unul — un apel direct e mai clar.
+- Ai nevoie de un **răspuns** de la fiecare parte (atunci nu e Observer — e altceva).
+- Ordinea reacțiilor contează strict sau una depinde de alta — Observer nu garantează asta.
+
+## Capcane frecvente
+
+- **Subject care cunoaște observatorii concreți.** Dacă în `SchimbaStare` apare `if (o is NotificatorEmail)`, ai ratat pattern-ul — sursa trebuie oarbă la tipuri. De-aia constrângerea interzice `is`/`as`.
+- **Observator care aruncă și oprește lanțul.** Dacă al doilea observator crapă, al treilea nu mai e anunțat. (La proiecte reale se izolează fiecare; la noi, ține-i simpli.)
+- **Notificare fără schimbare reală.** Anunță doar când starea chiar s-a schimbat, altfel observatorii reacționează degeaba.
+
+## Legătura cu ce urmează
+
+`NotificatorEmail`, `JurnalLivrare` reacționează fiecare *în plus* la un eveniment. Când vei vrea nu părți separate care reacționează, ci să **adaugi comportament peste un obiect existent**, împachetându-l — acolo intră **Decorator** (lecția 4). Deocamdată reține doar contrastul: Observer pune reacții *alături*; Decorator le pune *în jurul*.
+
 ---
 
-*Document viu — crește cu fiecare lecție. Următoarea: Lecția 2 — Observer.*
+*Document viu — crește cu fiecare lecție. Următoarea: Lecția 3 — State.*
