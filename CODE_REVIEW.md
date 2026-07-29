@@ -1,67 +1,107 @@
-# Code Review — design-patterns-csharp · ex1 Strategy (runda 1)
+# Code Review — design-patterns-csharp
 
-**Data:** 2026-07-29 · **Commit:** 5f8379d „ex1" · **Build:** trece · **Rulare:** `57.0 / 117.00 / 58.50` — corect
+**Ultima rundă:** 2026-07-29 · **Commit:** 0d25652 „observer pattern" · **Build:** trece · **Rulare:** ex1 + ex2 rulează
+
+---
+
+# ex2 — Observer (runda 1)
 
 ## Ce e corect ✅
 
-- **Strategy aplicat corect.** `Comanda` nu conține niciun `if`/`switch` pe tipul de livrare — ține o `ILivrareStrategie`, deleagă în `CostTransport()` și o schimbă în `SchimbaStrategie()`. Exact miezul pattern-ului.
-- **Formulele** din cele 3 strategii sunt corecte (verificat în output: 5+0.5·100+0.1·20=57; 12+1·100+0.25·20=117; 117−50%=58.5).
-- **Bonusul (Decorator) e prins.** `LivrareCuReducere` primește altă `ILivrareStrategie` în constructor și îi ajustează rezultatul — ai văzut singur că o strategie poate împacheta altă strategie. Ăsta e exact drumul spre lecția 4.
+- **Observer aplicat corect.** `SchimbaStare` setează `Stare` și parcurge observatorii cu `for`, chemând `Actualizeaza` — fără să cunoască nicio clasă concretă. Exact miezul pattern-ului.
+- **Toate cerințele 1-3 îndeplinite** — și output-ul respectă formatul din enunț (`[EMAIL] ...`, `[LOG] ...`, `[DEPOZIT] ...`), grupat câte 3 pe schimbare. Progres clar față de `Testare1` din prima rundă, care era incomplet.
+- **Bonus `Aboneaza`** — crești array-ul manual, corect, fără `List`.
 
----
+## 🔴 Critice
 
-## 🟡 Importante
+### B1 — `Dezaboneaza` presupune că observatorul există EXACT o dată
+`ex2/Models/Comanda.cs:29`
 
-### M1 — `bin/` și `obj/` au ajuns în git; lipsea `.gitignore`
-Repo, nu un fișier anume.
+Pre-dimensionezi array-ul nou la `observatori.Length - 1` ÎNAINTE să știi câte apariții scoți:
 
-`git add .` a măturat în repo folderele de build (`bin/`, `obj/`) — artefacte generate, care se regenerează la orice `dotnet build`. Nu au ce căuta în istoric: fac diff-uri urâte, umflă repo-ul și pot genera conflicte false. Cauza: proiectul n-avea `.gitignore` (scăparea starterului — l-am adăugat acum, cu `bin/` și `obj/`).
-
-Ce rămâne de făcut (git = manual, îl faci tu):
-```bash
-git rm -r --cached bin obj
-git add .gitignore
-git commit -m "gitignore + scoate bin/obj din tracking"
+```csharp
+IObservator[] obsNou = new IObservator[observatori.Length - 1];
 ```
-După asta, folderele rămân pe disc dar git le ignoră. **Regula:** în git intră doar ce SCRII tu, niciodată ce GENEREAZĂ compilatorul.
 
-### M2 — `Testare1` nu acoperă cerințele 3 și 4
-`ex1/Testare1.cs`
-
-Trei lucruri lipsă față de enunț:
-
-1. **`LivrareGratuita` nu e demonstrată.** Cerința 3 cerea explicit Standard → Express → **Gratuita**. Ai înlocuit a treia cu bonusul (`LivrareCuReducere`) — bun că ai testat bonusul, dar strategia gratuită tot trebuie arătată.
-2. **Output-ul nu spune CARE strategie a răspuns.** Afișezi doar `comanda.CostTransport()` — trei numere seci. Cerința cerea „numele strategiei ȘI costul". Fără `Nume`, un cititor vede `57 / 117 / 58.5` și nu poate lega numărul de metodă. Tocmai `Nume`-le din contract face vizibil că s-au schimbat strategiile.
-3. **Cazul de eroare lipsește.** Cerința 4 cerea o comandă cu greutate `0`, prinsă cu `try/catch (ArgumentException)` și mesajul afișat. Acum validarea din constructor există, dar nu e pusă niciodată la treabă — deci e cod nedovedit (aceeași lecție ca la interfaces: ce nu rulează, nu e dovedit).
-
-### M3 — `LivrareCuReducere` aruncă tipul greșit de excepție
-`ex1/Models/LivrareCuReducere.cs:16`
-
-`throw new InvalidCastException("The procent is invalid")` — `InvalidCastException` înseamnă „o conversie de tip a eșuat" (`(int)unObiect`). Aici n-ai nicio conversie; ai un **argument invalid**. Tipul potrivit e `ArgumentException` (sau `ArgumentOutOfRangeException`). Tipul excepției e un mesaj către cine o prinde — pune tipul care descrie adevărata cauză.
+Dacă `vechi` **nu e în listă**, toate cele N elemente trec de `if (observatori[i] != vechi)` și încerci să pui N elemente într-un array de N-1 → `IndexOutOfRangeException` la ultima copiere. Dacă `vechi` apare **de două ori**, rămâne un slot `null` la coadă, iar la următoarea `SchimbaStare` crapă cu `NullReferenceException`. Și fiindcă nu chemi `Dezaboneaza` nicăieri (vezi M2), bug-ul e ascuns — netestat.
 
 | | Acum | Corect |
 |---|---|---|
-| Excepție | `throw new InvalidCastException("The procent is invalid")` | `throw new ArgumentException("Discount percent must be between 0 and 100")` |
+| Idee | dimensionezi întâi, presupui o apariție | numeri întâi câte rămân, apoi dimensionezi |
 
----
+Un traseu sigur: parcurgi o dată și NUMERI câte sunt `!= vechi`, aloci array-ul de acea mărime, apoi copiezi. Așa merge și când lipsește, și când apare de mai multe ori.
+
+**Lecția:** când mărimea rezultatului depinde de conținut, n-o fixa din presupuneri — calculeaz-o din date. „Sigur e exact unul" e felul în care se nasc `IndexOutOfRange`-urile.
+
+## 🟡 Importante
+
+### M1 — `.vs/` a ajuns în git (15 fișiere)
+Repo. `git add .` a măturat folderul ascuns al Visual Studio (`.vs/` — setări locale de IDE, cache, layout de ferestre). Nu e cod, e starea editorului TĂU; pe altă mașină n-are sens. `.gitignore` are doar `bin/` și `obj/`. Adaugă `.vs/` și scoate-l din tracking:
+```bash
+git rm -r --cached .vs
+```
+De acum, regula fixă: orice folder pe care NU l-ai scris tu (îl generează IDE-ul sau compilatorul) intră în `.gitignore` ÎNAINTE de primul `git add .`.
+
+### M2 — bonusul e scris dar nedemonstrat în `Testare2`
+`ex2/Testare2.cs`
+
+`Aboneaza`/`Dezaboneaza` există, dar `Testare2` nu le cheamă niciodată. Cerința bonus cerea explicit: abonează un observator DUPĂ prima `SchimbaStare` și arată că prinde doar schimbările următoare. Fără scenariul ăsta, bonusul e cod nedovedit — și exact asta a ținut ascuns bug-ul B1. Adaugă: după `SchimbaStare("Expediata")`, un `Aboneaza(...)`, apoi `SchimbaStare("Livrata")`, și un `Dezaboneaza(...)` de probă.
 
 ## 🟢 Cleanups
 
-- **C1** — `(decimal)0.5 * greutateKg`: cast de la un `double` la `decimal`. Merge, dar idiomatic în C# scrii literalul direct `decimal`: `0.5m`, `0.1m`, `0.25m`, `1.0m`. Bonus: `(decimal)0.1` pleacă de la un `double` care nu reprezintă exact 0.1 — aici se rotunjește ok, dar e un obicei de evitat. Scrie `0.1m` și pornești direct din `decimal`.
-- **C2** — `using System.Globalization;` în `LivrareCuReducere.cs:1` nu e folosit. Șterge-l.
-- **C3** — `Nume => "Reducere"` e hardcodat, deci decoratorul ascunde CE strategie împachetează. La lecția Decorator vei vrea `strategie.Nume + " (-" + Procent + "%)"` → „Express (-50%)". Deocamdată doar reține întrebarea: un decorator ar trebui să-și piardă complet identitatea celui pe care-l împachetează?
-- **C4** — spațiere dublă la `return  costInitial` (`LivrareCuReducere.cs:26`). Cosmetic.
+- **C1** — spațiere dublă `i  < observatori.Length` (`Comanda.cs:45`). Cosmetic.
+- **Notă de design** — `SchimbaStare` anunță chiar dacă starea nouă e identică cu cea veche. Enunțul menționa capcana „notificare fără schimbare reală". Opțional: dacă `stareNoua == Stare`, nu mai anunța.
+
+---
+
+# ex1 — Strategy (runda 2)
+
+## Rezolvate ✅
+
+| Din runda 1 | Verificat |
+|---|---|
+| M2 (parțial) — `Nume` în output + `LivrareGratuita` testată | ✅ toate 4 strategiile apar etichetate |
+| M3 — excepție corectă în `LivrareCuReducere` | ✅ `ArgumentOutOfRangeException` (vezi C1 mai jos) |
+| C2 — `using System.Globalization` scos | ✅ |
+| C1 — literali `decimal` cu `m` | ✅ ca stil — dar a introdus B2 |
+
+## 🔴 Critice
+
+### B2 (regresie nouă) — formula din `LivrareStandard` e greșită
+`ex1/Models/LivrareStandard.cs:9`
+
+Când ai trecut la literali `m`, ai copiat coeficienții de la Express în Standard:
+
+```csharp
+return 5 + 1.0m * greutateKg + 0.25m * distantaKm;   // sunt coeficienții Express
+```
+
+Enunțul cere pentru Standard `5 + 0.5·greutate + 0.1·distanța`. La rulare iese `Standard: 110.00` în loc de `57.00`, iar Standard și Express au acum practic aceeași formulă (diferă doar prin `5` vs `12`).
+
+| | Acum | Corect |
+|---|---|---|
+| Standard | `5 + 1.0m * g + 0.25m * d` | `5 + 0.5m * g + 0.1m * d` |
+
+**Lecția** (fix cea de la Q&A runda 1): un cleanup „doar cosmetic" a schimbat comportamentul. După ORICE refactor, chiar și unul care „nu schimbă logica", re-rulează și compară cifrele. O zecimală schimbată din greșeală nu dă eroare de compilare — trece tăcută până o vede cineva în output.
+
+## 🟡 Importante
+
+### M2 (rămas, pct. 3) — cazul de eroare tot nu e demonstrat
+`ex1/Testare1.cs`
+
+Validarea greutății există în constructorul `Comanda`, dar `Testare1` n-o pune niciodată la treabă. Cerința 4 cerea o comandă cu greutate `0`, prinsă cu `try/catch (ArgumentException)` și mesajul afișat. Adaug-o la final.
+
+## 🟢 Cleanups
+
+- **C1** — la `ArgumentOutOfRangeException`, primul argument e `paramName`, nu mesajul. Acum mesajul tău ajunge afișat ca nume de parametru („Parameter 'Discount percent...'"). Idiomatic: `new ArgumentOutOfRangeException(nameof(procent), "Discount percent must be between 0 and 100")`. Subtilitatea care te-a prins: la `ArgumentException` primul arg e mesajul, la `ArgumentOutOfRangeException` e numele parametrului — de-aia s-a schimbat sensul când ai schimbat tipul.
+- **C3 (rămas)** — `Nume => "Reducere"` tot ascunde ce strategie împachetează. Îl reluăm la lecția Decorator.
 
 ---
 
 ## Q&A
 
-**Q1.** Rulezi acum și vezi `57 / 117 / 58.5`. Dacă ți-aș ascunde codul din `Testare1`, ai putea spune din output care număr vine de la care strategie? Ce trebuie să adaugi la afișare ca răspunsul să fie „da"?
+**Q1.** (ex2) Scrie pe hârtie ce se întâmplă pas cu pas în `Dezaboneaza` dacă array-ul are 3 observatori și-i dai unul care NU e în listă. La ce index se oprește și de ce? Ce mărime ar fi trebuit să aibă `obsNou`?
 
-**Q2.** `InvalidCastException` vs `ArgumentException`: cine „citește" excepția pe care o arunci și de ce contează pentru el ce tip alegi? Dă un exemplu de cod care ar prinde `ArgumentException` dar NU `InvalidCastException`.
+**Q2.** (ex1) Standard și Express dau acum 110 și 117 — aproape la fel. Dacă N-ai fi avut cifrele din enunț în față, ce te-ar fi făcut să bănuiești că Standard e greșit, doar uitându-te la output? (hint: ce rost mai are „Standard" dacă e cât „Express"?)
 
-**Q3.** `LivrareCuReducere` primește o `ILivrareStrategie` și e ea însăși o `ILivrareStrategie`. Ce te oprește să bagi o `LivrareCuReducere` în interiorul altei `LivrareCuReducere` (reducere peste reducere)? Ce ar afișa și ar avea sens?
-
----
-
-*Regula proiectului: codul tău nu se modifică — corectările le aplici tu, pe baza review-ului.*
+**Q3.** (ex2) `Aboneaza` și `Dezaboneaza` refac amândouă array-ul de la zero. De ce în C# nu poți pur și simplu „mări" un array existent, și ce structură din .NET face exact asta pentru tine (pe care noi am interzis-o intenționat aici, ca să vezi mecanismul)?
