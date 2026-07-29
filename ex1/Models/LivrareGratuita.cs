@@ -6,7 +6,7 @@ namespace DesignPatterns.ex1.Models
 
         public decimal CalculeazaCost(decimal greutateKg, decimal distantaKm)
         {
-            throw new NotImplementedException();
+            return 0;
         }
     }
 }

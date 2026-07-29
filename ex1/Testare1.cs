@@ -6,6 +6,20 @@ namespace DesignPatterns.ex1
     {
         public Testare1()
         {
+            LivrareStandard strategie = new();
+            Comanda comanda = new("Stefan",100,20,strategie);
+
+            Console.WriteLine(comanda.CostTransport());
+
+            LivrareExpress noua = new();
+
+            comanda.SchimbaStrategie(noua);
+            Console.WriteLine(comanda.CostTransport());
+
+            LivrareCuReducere reducere = new(50, noua);
+
+            comanda.SchimbaStrategie(reducere);
+            Console.WriteLine(comanda.CostTransport());
         }
     }
 }

@@ -4,6 +4,6 @@ internal class Program
 {
     private static void Main()
     {
-        Testare1 testare1 = new Testare1();
+        Testare1 testare1 = new();
     }
 }

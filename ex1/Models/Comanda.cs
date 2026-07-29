@@ -28,12 +28,12 @@ namespace DesignPatterns.ex1.Models
 
         public void SchimbaStrategie(ILivrareStrategie noua)
         {
-            throw new NotImplementedException();
+            strategie = noua;
         }
 
         public decimal CostTransport()
         {
-            throw new NotImplementedException();
+            return strategie.CalculeazaCost(GreutateKg, DistantaKm);
         }
     }
 }
