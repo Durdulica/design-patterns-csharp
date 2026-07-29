@@ -1,0 +1,15 @@
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/bin/Debug/net8.0/DesignPatterns
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/bin/Debug/net8.0/DesignPatterns.deps.json
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/bin/Debug/net8.0/DesignPatterns.runtimeconfig.json
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/bin/Debug/net8.0/DesignPatterns.dll
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/bin/Debug/net8.0/DesignPatterns.pdb
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.GeneratedMSBuildEditorConfig.editorconfig
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.AssemblyInfoInputs.cache
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.AssemblyInfo.cs
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.csproj.CoreCompileInputs.cache
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.sourcelink.json
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.dll
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/refint/DesignPatterns.dll
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.pdb
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/DesignPatterns.genruntimeconfig.cache
+/Users/bogdandaniel/Documents/projects-elevi/stefan-design-patterns-csharp/obj/Debug/net8.0/ref/DesignPatterns.dll

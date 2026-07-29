@@ -1,2 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+using DesignPatterns.ex1;
+
+internal class Program
+{
+    private static void Main()
+    {
+        Testare1 testare1 = new Testare1();
+    }
+}
