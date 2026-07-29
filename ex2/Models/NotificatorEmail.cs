@@ -4,7 +4,7 @@ namespace DesignPatterns.ex2.Models
     {
         public void Actualizeaza(string stareNoua)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("[EMAIL] Comanda a trecut in starea: " +  stareNoua);
         }
     }
 }
