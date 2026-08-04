@@ -6,7 +6,7 @@ namespace DesignPatterns.ex1.Models
 
         public decimal CalculeazaCost(decimal greutateKg, decimal distantaKm)
         {
-            return 5 + 1.0m * greutateKg + 0.25m * distantaKm;
+            return 5 + 0.5m * greutateKg + 0.1m * distantaKm;
         }
     }
 }

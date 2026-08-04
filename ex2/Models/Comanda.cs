@@ -26,7 +26,16 @@ namespace DesignPatterns.ex2.Models
 
         public void Dezaboneaza(IObservator vechi)
         {
-            IObservator[] obsNou = new IObservator[observatori.Length - 1];
+            int cnt = 0;
+            for (int i = 0; i < observatori.Length; i++)
+            {
+                if (observatori[i] != vechi)
+                {
+                    cnt++;
+                }
+            }
+
+            IObservator[] obsNou = new IObservator[cnt];
             int index = 0;
             for(int i = 0; i < observatori.Length; i++)
             {
@@ -41,8 +50,10 @@ namespace DesignPatterns.ex2.Models
 
         public void SchimbaStare(string stareNoua)
         {
+            if(Stare == stareNoua) return;
+
             Stare = stareNoua;
-            for(int i = 0; i  < observatori.Length; i++)
+            for(int i = 0; i < observatori.Length; i++)
             {
                 observatori[i].Actualizeaza(Stare);
             }

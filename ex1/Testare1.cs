@@ -25,6 +25,15 @@ namespace DesignPatterns.ex1
 
             comanda.SchimbaStrategie(reducere);
             Console.WriteLine(reducere.Nume + ": " + comanda.CostTransport());
+
+            try
+            {
+                Comanda comanda2 = new("Alex", 0, 10, strategie);
+            }
+            catch(ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

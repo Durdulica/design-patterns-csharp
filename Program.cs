@@ -7,8 +7,8 @@ internal class Program
 {
     private static void Main()
     {
-        Testare1 testare1 = new();
-        Testare2 testare2 = new();
+        //Testare1 testare1 = new();
+        //Testare2 testare2 = new();
         Testare3 testare3 = new();
         Testare4 testare4 = new();
     }
