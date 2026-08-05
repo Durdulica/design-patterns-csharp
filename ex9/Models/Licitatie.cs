@@ -1,17 +1,23 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-namespace DesignPatterns.ex9.Models
+﻿namespace DesignPatterns.ex9.Models
 {
     public class Licitatie
     {
-        private IParticipant[] participanti;
+        private readonly IParticipant[] participanti;
 
         public decimal PretCurent {  get; private set; }
 
         public Licitatie(decimal pret, IParticipant[] participanti)
         {
+            ArgumentNullException.ThrowIfNull(participanti);
+
             PretCurent = pret;
             this.participanti = participanti;
+
+            /*for(int i = 0; i < participanti.Length; i++)
+            {
+                var test = participanti[i] as AutoLicitator; // ???
+                test.Licitatie = this;
+            }*/
         }
 
         public void Liciteaza(decimal suma)

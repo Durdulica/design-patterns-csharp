@@ -15,13 +15,13 @@ namespace DesignPatterns.ex4
 
             StatieMeteo statie = new(observatori);
 
-            statie.SchimbaStare(20);
+            statie.SeteazaTemperatura(20);
             Console.WriteLine();
-            statie.SchimbaStare(30);
+            statie.SeteazaTemperatura(30);
             Console.WriteLine();
-            statie.SchimbaStare(40);
+            statie.SeteazaTemperatura(40);
             Console.WriteLine();
-            statie.SchimbaStare(30);
+            statie.SeteazaTemperatura(30);
         }
     }
 }

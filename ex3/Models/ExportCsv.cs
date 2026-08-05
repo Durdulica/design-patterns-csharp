@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace DesignPatterns.ex3.Models
+﻿namespace DesignPatterns.ex3.Models
 {
     public class ExportCsv : IExportStrategie
     {

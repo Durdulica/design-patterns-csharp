@@ -12,17 +12,23 @@
             this.observatori = observatori;
         }
 
-        public void Depune(decimal suma)
+        private void NotificaObservatori()
         {
-            if(suma < 0)
-            {
-                throw new ArgumentException("Deposit amount must be positive");
-            }
-            Sold += suma;
             for (int i = 0; i < observatori.Length; i++)
             {
                 observatori[i].Actualizeaza(Sold);
             }
+        }
+
+        public void Depune(decimal suma)
+        {
+            if (suma < 0)
+            {
+                throw new ArgumentException("Deposit amount must be positive");
+            }
+            Sold += suma;
+
+            NotificaObservatori();
         }
 
         public void Retrage(decimal suma) 
@@ -37,10 +43,8 @@
             }
 
             Sold -= suma;
-            for (int i = 0; i < observatori.Length; i++)
-            {
-                observatori[i].Actualizeaza(Sold);
-            }
+            
+            NotificaObservatori();
         }
     }
 }

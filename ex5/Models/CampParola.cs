@@ -6,6 +6,10 @@
 
         public CampParola(IPoliticaParola politica)
         {
+            if (politica == null)
+            {
+                throw new ArgumentNullException(nameof(politica));
+            }
             this.politica = politica;
         }
 
@@ -13,14 +17,14 @@
         {
             if(noua == null)
             {
-                throw new ArgumentNullException("new policy");
+                throw new ArgumentNullException(nameof(noua));
             }
             politica = noua;
         }
 
-        public void Verifica(string parola)
+        public bool Verifica(string parola)
         {
-            Console.WriteLine(politica.EsteValida(parola));
+            return politica.EsteValida(parola);
         }
     }
 }

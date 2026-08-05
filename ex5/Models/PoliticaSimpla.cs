@@ -8,7 +8,6 @@
         {
             if(parola.Length < 6)
             {
-                Console.WriteLine("The password must have at least 6 characters");
                 return false;
             }
 

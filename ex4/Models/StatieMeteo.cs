@@ -5,9 +5,9 @@
         private IAfisaj[] afisaje;
         public decimal Temperatura { get; private set; }
 
-        public StatieMeteo(IAfisaj[] observatori)
+        public StatieMeteo(IAfisaj[] afisaje)
         {
-            this.afisaje = observatori;
+            this.afisaje = afisaje;
         }
 
         public void SeteazaTemperatura(decimal stareNoua)

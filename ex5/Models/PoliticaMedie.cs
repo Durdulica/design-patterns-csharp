@@ -8,7 +8,6 @@
         {
             if (parola.Length < 8)
             {
-                Console.WriteLine("The password must contain at least 8 characters");
                 return false;
             }
 
@@ -20,7 +19,6 @@
                 }
             }
 
-            Console.WriteLine("The password must contain at least one digit");
             return false;
         }
     }

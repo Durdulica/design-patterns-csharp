@@ -13,19 +13,12 @@
 
         public void OfertaNoua(decimal pretCurent)
         {
-            if(pretCurent <= pretMaxim && ultimPret != pretCurent)
-            {
-                if(pretCurent + 10 > pretMaxim) 
-                {
-                    ultimPret = pretMaxim;
-                    Licitatie.Liciteaza(pretMaxim);
-                }
-                else
-                {
-                    ultimPret = pretCurent + 10;
-                    Licitatie.Liciteaza(pretCurent + 10);
-                }
-            }
+            if (pretCurent != Licitatie.PretCurent) return;
+            if (ultimPret == pretCurent) return;
+            if(pretCurent >= pretMaxim) return;
+
+            ultimPret = Math.Min(pretMaxim, pretCurent + 10);
+            Licitatie.Liciteaza(ultimPret);
         }
     }
 }

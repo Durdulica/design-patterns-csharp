@@ -9,7 +9,7 @@ namespace DesignPatterns.ex8
             IObservatorCont[] observatori = [
                 new NotificatorSms(),
                 new JurnalAudit(),
-                new AlertaSoldMic(50)
+                new AlertaSoldMic(55)
                 ];
 
             Cont cont = new(1000, observatori);

@@ -4,7 +4,7 @@
     {
         private decimal minim = decimal.MaxValue;
         private decimal maxim = decimal.MinValue;
-        private decimal numar = 0;
+        private int numar = 0;
         private decimal suma = 0;
         public void Actualizeaza(decimal temperatura)
         {
@@ -21,7 +21,7 @@
             suma += temperatura;
             numar++;
             
-            Console.WriteLine("[STATISTICA] Min: " + minim + "| Max: " + maxim + "| Media: " + (suma / numar));
+            Console.WriteLine("[STATISTICA] Min: " + minim + " | Max: " + maxim + " | Media: " + (suma / numar) + "\n");
         }
     }
 }

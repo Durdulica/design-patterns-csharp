@@ -8,6 +8,11 @@
 
         public ComisionCuPlafon(decimal comisionMax, IComision strategie)
         {
+            if (strategie == null)
+            {
+                throw new ArgumentNullException(nameof(strategie));
+            }
+
             if (comisionMax < 0)
             {
                 throw new ArgumentException("The maximum commission must be positive");

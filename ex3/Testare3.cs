@@ -16,15 +16,15 @@ namespace DesignPatterns.ex3
 
             Raport raport = new Raport(date, new ExportCsv());
 
-            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Exporta());
+            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Genereaza());
 
-            raport.SchimbaStrategie(new ExportText());
+            raport.SchimbaFormat(new ExportText());
 
-            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Exporta());
+            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Genereaza());
 
-            raport.SchimbaStrategie(new ExportMarkdown());
+            raport.SchimbaFormat(new ExportMarkdown());
 
-            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Exporta());
+            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Genereaza());
         }
     }
 }

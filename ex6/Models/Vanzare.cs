@@ -7,12 +7,20 @@
 
         public Vanzare(decimal valoareVanzare, IComision strategie)
         {
+            if (strategie == null)
+            {
+                throw new ArgumentNullException(nameof(strategie));
+            }
             ValoareVanzare = valoareVanzare;
             this.strategie = strategie;
         }
 
         public void SchimbaComision(IComision nou)
         {
+            if (nou == null)
+            {
+                throw new ArgumentNullException(nameof(nou));
+            }
             strategie = nou;
         }
 

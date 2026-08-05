@@ -9,8 +9,8 @@ namespace DesignPatterns.ex9
             AutoLicitator auto1 = new(100);
             AutoLicitator auto2 = new(150);
             IParticipant[] participanti = [
-                auto1,
                 new Spectator(),
+                auto1,
                 auto2
                 ];
 

@@ -7,6 +7,10 @@
 
         public ComisionFix(decimal comision)
         {
+            if (comision < 0) 
+            {
+                throw new ArgumentException("The commission cannot be negative");
+            }
             Comision = comision;
         }
 

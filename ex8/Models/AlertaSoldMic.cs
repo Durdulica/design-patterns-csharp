@@ -11,7 +11,7 @@
 
         public void Actualizeaza(decimal soldNou)
         {
-            if(soldNou <= prag)
+            if(soldNou < prag)
             {
                 Console.WriteLine("[ALERTA] Sold sub prag: " + soldNou);
             }
