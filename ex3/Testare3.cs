@@ -14,20 +14,17 @@ namespace DesignPatterns.ex3
                 "foarte buna"
             };
 
-            ExportCsv strategie = new();
-            Raport raport = new Raport(date, strategie);
+            Raport raport = new Raport(date, new ExportCsv());
 
-            Console.WriteLine(strategie.Nume + ":\n" + raport.Exporta());
+            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Exporta());
 
-            ExportText text = new();
-            raport.SchimbaStrategie(text);
+            raport.SchimbaStrategie(new ExportText());
 
-            Console.WriteLine(text.Nume + ":\n" + raport.Exporta());
+            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Exporta());
 
-            ExportMarkdown markdown = new();
-            raport.SchimbaStrategie(markdown);
+            raport.SchimbaStrategie(new ExportMarkdown());
 
-            Console.WriteLine(markdown.Nume + ":\n" + raport.Exporta());
+            Console.WriteLine(raport.NumeFormat + ":\n" + raport.Exporta());
         }
     }
 }

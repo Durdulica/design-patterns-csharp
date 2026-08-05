@@ -2,20 +2,20 @@
 {
     public class StatieMeteo
     {
-        private IAfisaj[] observatori;
-        public decimal Stare { get; private set; }
+        private IAfisaj[] afisaje;
+        public decimal Temperatura { get; private set; }
 
         public StatieMeteo(IAfisaj[] observatori)
         {
-            this.observatori = observatori;
+            this.afisaje = observatori;
         }
 
-        public void SchimbaStare(decimal stareNoua)
+        public void SeteazaTemperatura(decimal stareNoua)
         {
-            Stare = stareNoua;
-            for (int i = 0; i < observatori.Length; i++) 
+            Temperatura = stareNoua;
+            for (int i = 0; i < afisaje.Length; i++) 
             {
-                observatori[i].Actualizeaza(Stare);
+                afisaje[i].Actualizeaza(Temperatura);
             }
         }
     }

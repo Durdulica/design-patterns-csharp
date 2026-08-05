@@ -6,6 +6,8 @@
 
         public string Formateaza(string[] randuri)
         {
+            if (randuri.Length == 0) return string.Empty;
+
             string rez = string.Empty;
 
             rez += "- " + randuri[0];

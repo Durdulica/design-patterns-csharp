@@ -11,7 +11,7 @@
         {
             if(procent < 0 || procent > 100)
             {
-                throw new ArgumentOutOfRangeException("Discount percent must be between 0 and 100");
+                throw new ArgumentOutOfRangeException(nameof(procent), "Discount percent must be between 0 and 100");
             }
 
             Procent = procent;

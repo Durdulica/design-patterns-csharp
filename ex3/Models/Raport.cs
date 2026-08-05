@@ -3,7 +3,8 @@
     public class Raport
     {
         private IExportStrategie strategie;
-        public string[] Date { get; }
+        private string[] Date { get; }
+        public string NumeFormat => strategie.Nume;
 
         public Raport(string[] date, IExportStrategie strategie)
         {
@@ -16,12 +17,12 @@
             this.strategie = strategie;
         }
 
-        public void SchimbaStrategie(IExportStrategie noua)
+        public void SchimbaFormat(IExportStrategie noua)
         {
             strategie = noua;
         }
 
-        public string Exporta()
+        public string Genereaza()
         {
             return strategie.Formateaza(Date);
         }
