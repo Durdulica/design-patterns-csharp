@@ -7,6 +7,7 @@ using DesignPatterns.ex6;
 using DesignPatterns.ex7;
 using DesignPatterns.ex8;
 using DesignPatterns.ex9;
+using DesignPatterns.ex10;
 
 internal class Program
 {
@@ -21,5 +22,6 @@ internal class Program
         Testare7 testare7 = new();
         Testare8 testare8 = new();
         Testare9 testare9 = new();
+        Testare10 testare10 = new();
     }
 }

@@ -244,8 +244,169 @@ Amândouă folosesc un contract și polimorfism. Diferența e **direcția** și 
 
 ## Legătura cu ce urmează
 
-`NotificatorEmail`, `JurnalLivrare` reacționează fiecare *în plus* la un eveniment. Când vei vrea nu părți separate care reacționează, ci să **adaugi comportament peste un obiect existent**, împachetându-l — acolo intră **Decorator** (lecția 4). Deocamdată reține doar contrastul: Observer pune reacții *alături*; Decorator le pune *în jurul*.
+`NotificatorEmail`, `JurnalLivrare` reacționează fiecare *în plus* la un eveniment. Când vei vrea nu părți separate care reacționează, ci să **adaugi comportament peste un obiect existent**, împachetându-l — acolo intră **Decorator** (grupul *Structură*). Deocamdată reține doar contrastul: Observer pune reacții *alături*; Decorator le pune *în jurul*.
+
+\newpage
+
+# Lecția 3 — Factory Method
+
+> **Un cuvânt:** creare delegată. Muți `new` din codul care decide, în clase care știu fiecare să nască un singur lucru.
+
+> **Notă de parcurs.** În firul anunțat la lecția 0, aici urma State, iar Factory Method venea în grupul *Creare*. Îl luăm înainte pentru că ai lovit deja problema pe care o rezolvă, singur, în proiectul tău `academy`. Un pattern se învață cel mai bine când doare — iar ăsta te doare acum.
+
+## Problema (exercițiul `ex10`: încărcarea utilizatorilor)
+
+Ai un fișier în care fiecare linie începe cu un tip:
+
+```
+STUDENT,Ana,Popescu,anul 2
+PROFESOR,Ion,Ionescu,Matematica
+STUDENT,Vlad,Marin,anul 1
+```
+
+Trebuie să construiești, pentru fiecare linie, obiectul potrivit: `Student` sau `Profesor`. Prima variantă la care se gândește oricine:
+
+```csharp
+foreach (string linie in linii)
+{
+    string[] campuri = linie.Split(',');
+    switch (campuri[0])
+    {
+        case "STUDENT":  utilizatori.Add(new Student(campuri));  break;
+        case "PROFESOR": utilizatori.Add(new Profesor(campuri)); break;
+        default: throw new ArgumentException("Unknown user type");
+    }
+}
+```
+
+Merge. Și e exact `switch`-ul de la lecția 1 — aceeași durere, alt loc: ca să adaugi `ADMIN`, redeschizi o metodă care mergea.
+
+Dar de data asta Strategy **nu** te salvează, și merită înțeles de ce.
+
+## De ce polimorfismul NU rezolvă asta
+
+În `academy` ai încercat exact asta, și e o încercare bună — instinctul era corect. Ai scos `switch`-ul și ai pus polimorfism:
+
+```csharp
+User newUser = new();
+newUser.Create(request);
+```
+
+`Create` e `virtual`, `Teacher` și `Admin` îl suprascriu. Deci ar trebui să meargă, nu?
+
+Nu. Uită-te la prima linie și întreabă-te **ce tip are obiectul**.
+
+E un `User`. L-ai scris tu, acolo: `new User()`. Apelul virtual se duce la implementarea **tipului real al obiectului** — iar tipul real e `User`. Deci se cheamă `User.Create`, niciodată `Teacher.Create`. Overrides-urile tale nu se execută nici măcar o dată.
+
+Aici e propoziția de reținut din toată lecția:
+
+> **Polimorfismul alege ce METODĂ rulează pe un obiect care există deja. Nu poate alege ce CLASĂ se construiește.**
+
+Când ajungi la `new`, decizia e deja luată — ai scris tu numele clasei, în cod, la compilare. Polimorfismul intră în scenă *după*. Nu ajunge niciodată destul de devreme.
+
+„Cine decide ce clasă se naște" e o **altă întrebare** decât „cine decide cum se comportă". Prima are nevoie de alt pattern.
+
+## Ideea
+
+Dacă `new Student(...)` nu poate fi ales polimorfic, atunci ascunde-l în spatele a ceva care **poate** fi ales polimorfic: un obiect a cărui singură treabă e să construiască.
+
+```csharp
+public interface IFabricaUtilizator
+{
+    string Tip { get; }
+    Utilizator Creeaza(string[] campuri);
+}
+```
+
+`FabricaStudent` știe să nască doar `Student`. `FabricaProfesor`, doar `Profesor`. Fiecare are `new`-ul ei, în clasa ei.
+
+Iar cel care încarcă fișierul nu mai are niciun `switch` și niciun `new` de model:
+
+```csharp
+foreach (IFabricaUtilizator fabrica in fabrici)
+{
+    if (fabrica.Tip == campuri[0])
+    {
+        return fabrica.Creeaza(campuri);
+    }
+}
+```
+
+Observă ce e `if`-ul ăsta: o comparație între **două șiruri de date**, nu o verificare de tip. `IncarcatorUtilizatori` nu cunoaște nicio clasă concretă de utilizator. Un tip nou de utilizator = **o clasă-model nouă + o fabrică nouă**, și zero linii modificate în încărcător.
+
+## Cele trei roluri
+
+| Rol | În exercițiu | Ce face |
+|---|---|---|
+| **Product** (contractul) | `Utilizator` | ce se construiește, văzut abstract |
+| **ConcreteProduct** | `Student`, `Profesor` | produsele reale |
+| **Creator** (contractul) | `IFabricaUtilizator` | declară metoda care naște un produs |
+| **ConcreteCreator** | `FabricaStudent`, `FabricaProfesor` | fiecare, un singur `new` |
+| **Client** | `IncarcatorUtilizatori` | cere un produs, fără să știe ce clasă primește |
+
+```
+    IncarcatorUtilizatori  (Client)
+        - fabrici: IFabricaUtilizator[]
+        - nu contine niciun "new Student"
+                 |
+                 |  cere prin contract
+                 v
+        IFabricaUtilizator          Utilizator
+                 ^                       ^
+         +-------+-------+        +------+------+
+         |               |        |             |
+  FabricaStudent  FabricaProfesor |             |
+         |               |        |             |
+         +-- creeaza --> Student  Profesor <----+
+```
+
+Citește diagrama pe orizontală: fiecare fabrică e legată de exact un produs. Asta e toată ideea — perechea (cine creează, ce creează) e închisă într-o clasă.
+
+## Mecanismul de dedesubt
+
+Trei lucruri, toate cunoscute:
+
+1. **`new` e o decizie luată la scriere, nu la rulare.** De-aia nu poate fi făcută polimorfic direct. Singura soluție e să o *muți* într-un obiect care poate fi ales la rulare.
+2. **Indirecție.** Nu chemi constructorul, chemi pe cineva care îl cheamă pentru tine. Exact ce făcea `Comanda` cu strategia — doar că acolo delegai un *calcul*, aici delegi o *naștere*.
+3. **Contractul ca tip de retur.** `Creeaza` întoarce `Utilizator`, nu `Student`. Clientul primește ceva despre care știe doar contractul. Dacă ar avea nevoie să știe tipul concret ca să-l folosească, n-ai câștigat nimic — de-aia `Utilizator` trebuie să aibă o metodă abstractă (`Descriere()`) care face treaba polimorfic.
+
+Punctul 3 e cel pe care îl ratează majoritatea: o fabrică urmată de un `as` în client e o fabrică degeaba. Ai mutat `switch`-ul, nu l-ai eliminat.
+
+## Factory Method vs Simple Factory
+
+Merită să știi că numele se folosesc amestecat, ca să nu te încurci când citești pe net.
+
+- Ce faci în `ex10` — un contract de fabrică, cu mai multe implementări, alese la rulare — e forma pe care o vei folosi în 90% din cazuri. Unii o numesc **Simple Factory** sau *parameterized factory*.
+- **Factory Method** în forma din carte (GoF) e mai strâmtă: o clasă de bază face o treabă mai mare și lasă o metodă abstractă prin care **subclasele decid produsul**. Adică fabrica nu e un obiect separat, e o metodă suprascrisă în ierarhia care oricum exista.
+
+Ideea e aceeași în ambele: **muți `new`-ul în spatele unui contract**. Diferă doar unde stă metoda. Nu te bloca pe nume — recunoaște durerea și forma soluției.
+
+## Când îl folosești
+
+- Trebuie să **alegi clasa la rulare**, după o valoare (un tip din fișier, o setare, o comandă a utilizatorului).
+- Ai un `switch`/lanț de `if` care se termină în `new` — mirosul clasic.
+- Vrei să poți **adăuga un tip nou** fără să atingi codul care le folosește.
+- Construirea are pași sau validări proprii pe care nu vrei să le împrăștii prin cod.
+
+## Când NU îl folosești
+
+- Ai **o singură clasă** de construit. `new Student(...)` direct e mai onest decât o fabrică cu o implementare.
+- Construcția e banală și tipul e cunoscut la compilare. O fabrică acolo e ceremonie pură.
+- Ai nevoie să **configurezi** un obiect cu multe câmpuri opționale — aia nu e problema de „ce clasă", ci de „cum o umplu". Pentru asta există **Builder**.
+
+## Capcane frecvente
+
+- **Fabrică urmată de `as` în client.** Dacă după `Creeaza` faci `var s = rezultat as Student;`, ai mutat problema. Produsul trebuie folosit prin contract.
+- **`switch` mutat în fabrică.** O singură clasă `FabricaUtilizatori` cu un `switch` înăuntru e mai ordonată decât înainte, dar tot trebuie deschisă la fiecare tip nou. Câte tipuri, atâtea fabrici.
+- **Fabrica cu stare.** Ca la strategii: dacă fabrica reține ceva între apeluri, n-o mai poți refolosi liniștit.
+- **`new` uitat în client.** Caută cuvântul `new` în clientul tău. Dacă apare vreun model concret acolo, pattern-ul nu e complet.
+
+## Legătura cu ce urmează
+
+Factory Method răspunde la „**ce** clasă construiesc". Rămâne întrebarea vecină: „**cum** o umplu, când are opt câmpuri, jumătate opționale, și doi vecini de constructor de același tip pe care îi poți inversa fără ca nimeni să observe?"
+
+Uită-te la constructoarele `Teacher` și `Admin` din `academy`, unul sub altul, și la ordinea lui `salary` și `age`. Acolo intră **Builder**.
 
 ---
 
-*Document viu — crește cu fiecare lecție. Următoarea: Lecția 3 — State.*
+*Document viu — crește cu fiecare lecție. Rămase: State, Decorator, Adapter, Builder, Singleton.*
