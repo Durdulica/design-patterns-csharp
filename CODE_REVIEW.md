@@ -1,6 +1,228 @@
 # Code Review — design-patterns-csharp
 
-**Ultima rundă:** 2026-08-05 (runda 4) · **Commit:** c8426f8 „code review(runda 2)" · **Build:** 🔴 **EȘUEAZĂ — 9 erori** · **Rulare:** imposibilă; ex7/ex9 verificate izolat, 4 bug-uri reproduse
+**Ultima rundă:** 2026-09-08 (runda 5) · **Commit:** `00f0adf` „code review(runda 3 + 4)" · **Build:** ✅ `Build succeeded` (1 warning) · **Rulare:** ✅ `dotnet run` merge până la capăt; 2 bug-uri noi reproduse (unul în programul principal, unul izolat în scratchpad)
+
+---
+
+# Runda 5 — fix-urile rundei 4 (`00f0adf`)
+
+Runda asta e cea mai bună de până acum: **20 din 22 de constatări închise**, inclusiv toate cele 4 critice și blocantul de build. Și, important, **fără nicio regresie în codul de model** — ceea ce runda 2 și runda 4 n-au reușit.
+
+Ce a rămas sunt exact două lucruri, și amândouă sunt aceeași greșeală de gândire îmbrăcată diferit: **un fix mutat pe jumătate**. La ex5 ai scos afișarea din strategie, dar n-ai pus-o înapoi la apelant. La ex9 ai reparat simptomul reintrării (prețul învechit), dar nu și reintrarea în sine.
+
+## Rezolvate din runda 4 ✅
+
+| Constatare | Verificat prin |
+|---|---|
+| **B0** — proiectul nu compila (9 erori) | ✅ `dotnet build` → `Build succeeded. 0 Error(s)` |
+| **B1** — `Aboneaza` ieșea din array | ✅ `Canal.cs:16` — bucla merge după `abonati.Length`. Rulat izolat cu 3 abonați: toate 3 notificate |
+| **B2** — `Dezaboneaza` aloca după numărul greșit | ✅ `Canal.cs:31` numeri cine **rămâne**, `:36` parcurgi **sursa**, indici separați `i`/`cnt`. Rulat izolat: `[a,b,c]` minus `b` → rămân `a` și `c`; dezabonare pe cineva neabonat → rămân toți 3. Exact cele două cazuri din Q1 |
+| **B3** — prețuri învechite difuzate | ✅ `AutoLicitator.cs:16` — `if (pretCurent != Licitatie.PretCurent) return;`. `Testare9` urcă 15→110 și se oprește singură, fără excepție |
+| **B4** — `<=` la `pretMaxim` | ✅ `AutoLicitator.cs:18` — `if (pretCurent >= pretMaxim) return;` |
+| **M1** — `Verifica` întorcea `void` | ✅ structural (`CampParola.cs:25` → `bool`) — dar vezi **B1** de mai jos |
+| **M2** — politicile afișau din interiorul validării | ✅ toate trei politicile sunt acum funcții pure: intră `string`, iese `bool`, zero `Console` |
+| **M3** — bucla de notificare duplicată în `Cont` | ✅ `Cont.cs:15-21` — `NotificaObservatori()` extras, chemat din ambele |
+| **M4** — null-check inconsistent | ⚠️ **parțial** — cele 4 locuri citate ✅, restul nu. Vezi **M1** |
+| **M5** — `AutoLicitator.Licitatie` publică, setată după construcție | 🔴 **NEATINS.** Vezi **M2** |
+| **M6** — `Raport.Date` proprietate privată | ✅ `Raport.cs:6` — `private readonly string[] date` |
+| **M7** — `Raport` nu valida `strategie` | ✅ `Raport.cs:15-18` + `SchimbaFormat` la `:26` |
+| **C1** — `using` nefolosit în `Licitatie` | ✅ scos |
+| **C2** — lanț `else if` în `PoliticaPuternica` | ✅ trei `if` independente |
+| **C3** — `Comision` care ținea bonusul | ✅ `ComisionCuBonus.cs:7` — `Bonus` |
+| **C4** — `<=` vs `<` la `AlertaSoldMic` | ✅ `AlertaSoldMic.cs:14` |
+| **C5** — `ComisionFix` fără validare | ✅ `ComisionFix.cs:10-13` |
+| **C6** — `ArgumentNullException("new policy")` | ✅ `CampParola.cs:20` — `nameof(noua)` |
+| **C7** — separator lipit în statistică | ✅ `AfisajStatistica.cs:24` |
+| **C8** — `decimal numar` contor | ✅ `int numar` |
+| **C9** — `using System.Text` abandonat | ✅ scos |
+| **C10** — parametrul rămas `observatori` | ✅ `StatieMeteo.cs:8` — `afisaje` |
+| **C11** — `"date"` literal | ✅ `nameof(date)` |
+| **C12** — fișiere fără linie nouă la final | 🔴 **NEATINS** (11 fișiere). Vezi **C1** |
+
+Merită spus separat: **B2 era bug-ul pe care îl reparaseși corect în `ex2` acum trei runde și l-ai reconstruit greșit din memorie în `ex7`.** Acum `ex2/Models/Comanda.cs:27-49` și `ex7/Models/Canal.cs:25-45` sunt identice ca traseu, cu indici separați în ambele. Ai deschis soluția veche. Asta era toată lecția.
+
+## 🔴 Critice
+
+### B1 — rezultatul lui `Verifica` se pierde: `ex5` nu mai afișează nimic
+`ex5/Testare5.cs:15, :20, :25, :28`
+
+```csharp
+Console.Write(politica.Nume + ": ");
+campParola.Verifica(parola);          // ← întoarce bool, nimeni nu-l citește
+```
+
+`dotnet run`, output real, linia de ex5:
+
+```
+Simpla: Medie: Puternica: Puternica: Fix: 50.00
+```
+
+Patru etichete, zero verdicte, fără linie nouă la final — de aia prima linie din ex6 („Fix: 50.00") se lipește de ea. Exercițiul S1 nu mai demonstrează nimic: nu poți vedea că `"abc123"` trece la Simplă și pică la Medie, care era exact ideea lui.
+
+**DE CE:** M1 și M2 din runda 4 ți-au cerut să muți o responsabilitate — afișarea — din strategie în context. Ai făcut prima jumătate (ai scos-o) și n-ai făcut-o pe a doua (n-ai pus-o unde trebuia). Compilatorul n-a spus nimic pentru că în C# un apel de metodă e o **instrucțiune-expresie** perfect legală: `campParola.Verifica(parola);` compilează la fel de bine ca `x + 1;` n-ar compila — diferența e că un apel poate avea efecte secundare, deci limbajul nu are cum să știe dacă rezultatul te interesează sau nu. Valoarea `true`/`false` se calculează, ajunge pe stivă și e aruncată. Zero erori, zero warning-uri, program mut.
+
+(În .NET există `[MustUseReturnValue]` și analizoare care semnalează asta, dar nu sunt pornite implicit. Plasa de siguranță reală rămâne una singură: **rulezi și te uiți la output**, nu doar la build.)
+
+**FIX:** `Console.WriteLine(politica.Nume + ": " + campParola.Verifica(parola));`
+
+### B2 — `ex9`: reintrarea e încă acolo, doar mascată de cifrele mici din test
+`ex9/Models/Licitatie.cs:31-34` + `ex9/Models/AutoLicitator.cs:21`
+
+Garda pe preț învechit (B3, runda 4) e **corectă și necesară** — dar ea repară ce se difuzează, nu cine pe cine cheamă. Reprodus izolat, cu aceleași două clase, singura schimbare fiind `pretMaxim`:
+
+```csharp
+var a1 = new AutoLicitator(1_000_000m);
+var a2 = new AutoLicitator(1_000_000m);
+var lic = new Licitatie(10, new IParticipant[] { a1, a2 });
+a1.Licitatie = lic; a2.Licitatie = lic;
+lic.Liciteaza(15);
+```
+
+```
+Stack overflow.
+Repeat 27507 times:
+   at DesignPatterns.ex9.Models.AutoLicitator.OfertaNoua(System.Decimal)
+   at DesignPatterns.ex9.Models.Licitatie.Liciteaza(System.Decimal)
+```
+
+Procesul moare — `StackOverflowException` nu se poate prinde cu `try/catch` în .NET, runtime-ul omoară procesul direct.
+
+**DE CE:** `Liciteaza` notifică participanții **din interiorul** ei (`Licitatie.cs:31-34`), iar `AutoLicitator.OfertaNoua` cheamă `Liciteaza` înapoi (`AutoLicitator.cs:21`). Fiecare licitație nu se **termină** — se **suspendă**, cu cadrul ei rămas pe stivă, și așteaptă ca licitația declanșată dinăuntru să se termine mai întâi. Cu maxime 100 și 150 lanțul are ~10 pași, deci nu-l vezi. Cu 1.000.000 are 100.000 de pași, iar stiva unui fir .NET e de 1 MB — se umple la ~27.500 de perechi de cadre.
+
+Și e chiar răspunsul empiric la Q3 din runda 4: „cine e vinovat că a ajuns o ofertă învechită?". Răspunsul e **niciunul dintre ei** — vinovat e faptul că subiectul își cheamă observatorii în timp ce încă e la mijlocul unei modificări. Un Subject corect nu difuzează dintr-o stare intermediară. Tiparul standard: primești oferta, o pui într-o coadă și, dacă nu ești deja în bucla de procesare, o consumi într-un `while` **la nivelul de sus**. Stiva rămâne plată indiferent câți pași are licitația, iar prețurile ies în ordine crescătoare — ceea ce rezolvă și „afișajul minte" (spectatorul vede acum `95, 75, 55, 35, 15` la desfacerea apelurilor).
+
+**FIX:** vezi tabelul Before/After.
+
+## 🟡 Importante
+
+### M1 — regula pe null s-a oprit exact la cele 4 linii pe care ți le-am citat
+`ex7/Models/Canal.cs:7-10` · `ex8/Models/Cont.cs:9-13` · `ex4/Models/StatieMeteo.cs:8-11` · `ex5/Models/PoliticaSimpla.cs:9` (+ `PoliticaMedie.cs:9`, `PoliticaPuternica.cs:9`)
+
+M4 din runda 4 enumera patru locuri: `CampParola` ctor, `Vanzare.SchimbaComision`, `ComisionCuPlafon`, `ComisionCuBonus`. Toate patru sunt reparate ✅. **Niciun alt constructor din proiect nu e.** Reprodus:
+
+| Apel | Aștept | Primesc |
+|---|---|---|
+| `new Canal(null!).PublicaVideo("x")` | `ArgumentNullException` la construcție | `NullReferenceException` la publicare |
+| `new Cont(100, null!).Depune(10)` | `ArgumentNullException` la construcție | `NullReferenceException` la depunere |
+| `new PoliticaSimpla().EsteValida(null!)` | `ArgumentNullException` sau `false` | `NullReferenceException` |
+
+E al treilea proiect la rând în care apare tiparul ăsta, și e cel mai scump obicei pe care îl ai acum: **repari linia semnalată, nu regula.** Un review îți dă exemple, nu inventar. Când citești „validează la intrare, ca obiectul să nu poată exista într-o stare invalidă", pasul următor nu e „repar cele 4" — e `Ctrl+Shift+F` după `public Nume(` în toată soluția și o trecere peste fiecare constructor. Îți ia trei minute și închide subiectul definitiv, în loc să-l redeschidem a treia oară.
+
+Nota bună: în `Licitatie.cs:11` ai folosit `ArgumentNullException.ThrowIfNull(participanti)` — forma modernă, o linie, aruncă cu `paramName` corect completat automat. E mai bună decât cele 6 blocuri `if (x == null) throw new ArgumentNullException(nameof(x))` din restul proiectului. Folosește-o peste tot.
+
+Pentru `EsteValida(null)` întrebarea e alta și merită gândită: e `null` o **eroare de programare** (arunci) sau o **parolă invalidă** (întorci `false`)? Ambele răspunsuri se apără; ce nu se apără e `NullReferenceException`, care nu spune nimănui nimic.
+
+### M2 — `AutoLicitator.Licitatie` publică și setabilă — a doua rundă neatinsă
+`ex9/Models/AutoLicitator.cs:6` + `ex9/Testare9.cs:18-19` + `ex9/Models/Licitatie.cs:16-20`
+
+Compilatorul încă îți spune, la fiecare build:
+
+```
+warning CS8618: Non-nullable property 'Licitatie' must contain a non-null value when exiting constructor.
+```
+
+Și văd în `Licitatie.cs:16-20` că ai încercat, ai pus un `// ???` și ai renunțat:
+
+```csharp
+/*for(int i = 0; i < participanti.Length; i++)
+{
+    var test = participanti[i] as AutoLicitator; // ???
+    test.Licitatie = this;
+}*/
+```
+
+Semnul de întrebare e pus în locul corect, deci hai să-l lămurim. Blocul ăla e greșit din două motive, și **al doilea e cel important**:
+
+1. `as` întoarce `null` când conversia nu merge — pentru `Spectator` (care nu e `AutoLicitator`) `test` iese `null`, iar `test.Licitatie = this` crapă imediat.
+2. Mai grav: `Licitatie` ar trebui să știe despre `AutoLicitator`? Nu. Tot Observer-ul stă pe faptul că subiectul cunoaște doar interfața `IParticipant`. În clipa în care faci `as AutoLicitator` ai reintrodus `if`-ul pe tip pe care pattern-ul îl elimină — mâine adaugi `LicitatorUman` și trebuie să te întorci aici.
+
+Soluția care rezolvă și dependența circulară fără să spargă abstracția: **legătura se face la abonare, nu în constructor.** `Licitatie` capătă `Aboneaza(IParticipant p)`, iar `IParticipant` capătă `void SeteazaLicitatie(Licitatie l)` — subiectul se dă pe sine, prin contract; `Spectator` implementează metoda gol, `AutoLicitator` își reține referința. Nimeni nu întreabă „ce fel de participant ești". Ăsta e și motivul pentru care `Aboneaza`/`Dezaboneaza` există în toate celelalte exerciții Observer și lipsesc din ex9.
+
+## 🟢 Cleanups
+
+- **C1** (C12 rămas) — 11 fișiere fără linie nouă la final: `ex1/Models/Comanda.cs`, `ex1/Models/LivrareCuReducere.cs`, `ex3/Models/ExportMarkdown.cs`, `ex3/Models/Raport.cs`, `ex4/Models/AfisajAlerta.cs`, `ex4/Models/AfisajCurent.cs`, `ex4/Models/AfisajStatistica.cs`, `ex5/Models/CampParola.cs`, `ex6/Models/ComisionPePraguri.cs`, `ex7/Models/Canal.cs`, `ex8/Models/IObservatorCont.cs`. În Visual Studio: `Tools → Options → Text Editor → C# → Advanced → Automatically add new line at end of file`. Contează la `git diff`: fără ea, orice modificare pe ultima linie apare ca „linie ștearsă + linie adăugată".
+- **C2** — `ex5/Models/PoliticaPuternica.cs:20, :24, :28`: `if (digit == false && Char.IsDigit(...))`. Două lucruri: `digit == false` se scrie `!digit`, iar garda nu-ți economisește nimic real — `Char.IsDigit` e o citire dintr-un tabel. Trei `if` simple, sau `if (Char.IsDigit(p[i])) digit = true;`. Bonus: cu toate trei `true` poți ieși din buclă (`if (digit && bigLetter && notLetterOrDigit) return true;`).
+- **C3** — `{ get; private set; }` pe proprietăți care nu se mai schimbă după constructor: `ComisionFix.cs:5`, `ComisionProcent.cs:5`, `ComisionCuPlafon.cs:7`, `ComisionCuBonus.cs:7`, `Vanzare.cs:6`. `{ get; }` spune „imutabil" și îl pune pe compilator să verifice; `private set` spune „mă schimb, dar doar dinăuntru" — ceea ce nu e adevărat aici. Ai făcut exact mișcarea asta corect la `Raport.date` (M6). Aceeași regulă.
+- **C4** — câmpurile de strategie care nu se schimbă: `ComisionCuPlafon.cs:5`, `ComisionCuBonus.cs:5`, `AlertaSoldMic.cs:5` → `readonly`. (`CampParola.politica` și `Vanzare.strategie` **nu** — alea chiar se schimbă, prin `SchimbaPolitica`/`SchimbaComision`.)
+- **C5** — `ex8/Models/Cont.cs:6` și `ex7/Models/Canal.cs:5`: array-urile de observatori se schimbă doar în `Canal` (prin `Aboneaza`). În `Cont` nu — dar `Cont` nici n-are `Aboneaza`/`Dezaboneaza`, deși e același pattern ca ex7. Nu e bug; e o asimetrie de care să fii conștient.
+
+## Before / After (doar criticele)
+
+### B1 — `ex5/Testare5.cs`
+
+| Acum | Corect |
+|---|---|
+| `Console.Write(politica.Nume + ": ");`<br>`campParola.Verifica(parola);` | `Console.WriteLine(politica.Nume + ": " + campParola.Verifica(parola));` |
+
+Regula: dacă o metodă întoarce ceva, întrebarea „cine citește valoarea asta?" trebuie să aibă răspuns. Dacă răspunsul e „nimeni", ori apelul e inutil, ori ai uitat jumătate din fix.
+
+### B2 — `ex9`: scoate difuzarea din apelul reintrant
+
+```csharp
+public class Licitatie
+{
+    private readonly IParticipant[] participanti;
+    private bool difuzez;                 // sunt deja în bucla de notificare?
+    private decimal ofertaInAsteptare;
+    private bool areOfertaInAsteptare;
+
+    public decimal PretCurent { get; private set; }
+
+    public void Liciteaza(decimal suma)
+    {
+        if (suma <= PretCurent)
+        {
+            throw new ArgumentException("The sum is lesser or equal to the current auction bid");
+        }
+
+        if (difuzez)                       // vin din interiorul unei notificări
+        {
+            ofertaInAsteptare = suma;      // las oferta și mă întorc — stiva nu crește
+            areOfertaInAsteptare = true;
+            return;
+        }
+
+        difuzez = true;
+        PretCurent = suma;
+
+        do
+        {
+            areOfertaInAsteptare = false;
+            for (int i = 0; i < participanti.Length; i++)
+            {
+                participanti[i].OfertaNoua(PretCurent);
+            }
+
+            if (areOfertaInAsteptare)      // cineva a licitat în timpul difuzării
+            {
+                PretCurent = ofertaInAsteptare;
+            }
+        }
+        while (areOfertaInAsteptare);
+
+        difuzez = false;
+    }
+}
+```
+
+Ce se schimbă: recursivitatea devine **buclă**. Un singur cadru `Liciteaza` pe stivă, oricâți pași ar avea licitația. Și pentru că fiecare rundă de difuzare pornește cu `PretCurent` deja actualizat, nimeni nu mai primește un preț învechit — garda `if (pretCurent != Licitatie.PretCurent) return;` din `AutoLicitator.cs:16` devine redundantă, dar las-o: e o gardă defensivă corectă și nu strică.
+
+Traseul, pas cu pas, ca să vezi diferența față de acum:
+
+| | Acum (recursiv) | Cu coadă |
+|---|---|---|
+| `Liciteaza(15)` | difuzează 15 → auto1 cheamă `Liciteaza(25)` **dinăuntru** | difuzează 15 → auto1 lasă 25 în coadă, se întoarce |
+| adâncime stivă la pasul 100 | 200 de cadre | 1 cadru |
+| ce vede Spectatorul | 15, 25, …, 110, apoi 95, 75, 55, 35, 15 | 15, 25, …, 110 |
+| cu `pretMaxim = 1_000_000` | `Stack overflow`, proces omorât | merge |
+
+## Q&A
+
+**Q1.** `campParola.Verifica(parola);` a compilat fără nicio eroare și fără niciun warning, deși valoarea întoarsă se pierde. **De ce e asta o decizie deliberată a limbajului și nu o scăpare?** Gândește-te la `list.Remove(x)` — întoarce `bool`, și de cele mai multe ori chiar nu te interesează. Întrebarea care urmează: dacă limbajul nu te poate ajuta aici, **ce anume din felul tău de a lucra ar fi prins-o în 5 secunde?**
+
+**Q2.** La B2, garda pe preț învechit e corectă, dar tot ai `Stack overflow` la cifre mari. **Formulează în două propoziții diferența dintre „am reparat ce se vede" și „am reparat ce se întâmplă".** Apoi: mai există în proiect vreun alt loc unde un observator poate chema înapoi în subiect în timpul notificării? (Uită-te la `ex8/Models/Cont.cs:15-21` — ce s-ar întâmpla dacă `AlertaSoldMic` ar face `cont.Depune(...)` ca să acopere descoperitul?)
+
+**Q3.** M4 din runda 4 enumera 4 locuri fără null-check și le-ai reparat pe toate 4. `Canal`, `Cont` și `StatieMeteo` au aceeași problemă și n-au fost în listă. **Când citești un review, cum decizi dacă o constatare e „linia asta" sau „regula asta"?** Indiciu practic: uită-te la formularea constatării — „`ex5/Models/CampParola.cs:14` nu verifică null" vs „validează la intrare, ca obiectul să nu poată exista într-o stare invalidă". Care dintre ele e un exemplu și care e o regulă?
 
 ---
 
