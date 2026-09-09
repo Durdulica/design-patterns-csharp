@@ -100,17 +100,17 @@ O metodă nouă de livrare = **o clasă nouă**, atât. Nu atingi `Comanda`, nu 
 | **Context** | `Comanda` | ține o strategie, deleagă spre ea, o poate schimba |
 
 ```
-        +-------------------------------+
-        |  Comanda  (Context)           |
-        |  - strategie: ILivrareStrategie
-        |  - CostTransport() -> deleaga |
-        +---------------+---------------+
-                        |  apeleaza prin contract
-                        v
+        +----------------------------------+
+        |  Comanda  (Context)              |
+        |  - strategie: ILivrareStrategie  |
+        |  - CostTransport() -> deleaga    |
+        +-----------------+----------------+
+                          |  apeleaza prin contract
+                          v
                  ILivrareStrategie
-                        ^
-        +---------------+---------------+
-        |               |               |
+                          ^
+        +-----------------+----------------+
+        |                 |                |
   LivrareStandard  LivrareExpress  LivrareGratuita
      (fiecare semneaza ILivrareStrategie)
 ```
@@ -146,7 +146,7 @@ Detaliul care le leagă: `CalculeazaCost` primește greutatea și distanța ca *
 
 ## Legătura cu ce urmează
 
-În bonusul exercițiului ai scris `LivrareCuReducere`: o strategie care primește **altă strategie** în constructor și îi ajustează rezultatul. O strategie care împachetează o strategie — asta e deja un **Decorator** (lecția 4). Strategy ți l-a arătat gratis; peste trei lecții doar îi punem numele.
+În bonusul exercițiului ai scris `LivrareCuReducere`: o strategie care primește **altă strategie** în constructor și îi ajustează rezultatul. O strategie care împachetează o strategie — asta e deja un **Decorator** (lecția 4). Strategy ți l-a arătat gratis; la lecția următoare doar îi punem numele.
 
 \newpage
 
@@ -351,13 +351,15 @@ Observă ce e `if`-ul ăsta: o comparație între **două șiruri de date**, nu 
                  |
                  |  cere prin contract
                  v
-        IFabricaUtilizator          Utilizator
-                 ^                       ^
-         +-------+-------+        +------+------+
-         |               |        |             |
-  FabricaStudent  FabricaProfesor |             |
-         |               |        |             |
-         +-- creeaza --> Student  Profesor <----+
+              IFabricaUtilizator                Utilizator
+                       ^                             ^
+             +---------+---------+           +-------+-------+
+             |                   |           |               |
+      FabricaStudent      FabricaProfesor    |               |
+             |                   |           |               |
+             +--- creeaza --->  Student  ----+               |
+                                 |                           |
+                                 +--- creeaza --->  Profesor -+
 ```
 
 Citește diagrama pe orizontală: fiecare fabrică e legată de exact un produs. Asta e toată ideea — perechea (cine creează, ce creează) e închisă într-o clasă.
@@ -403,10 +405,133 @@ Ideea e aceeași în ambele: **muți `new`-ul în spatele unui contract**. Difer
 
 ## Legătura cu ce urmează
 
-Factory Method răspunde la „**ce** clasă construiesc". Rămâne întrebarea vecină: „**cum** o umplu, când are opt câmpuri, jumătate opționale, și doi vecini de constructor de același tip pe care îi poți inversa fără ca nimeni să observe?"
+Factory Method răspunde la „**ce** clasă construiesc". Rămâne întrebarea vecină: „**cum** o umplu, când are opt câmpuri, jumătate opționale, și doi vecini de constructor de același tip pe care îi poți inversa fără ca nimeni să observe?" Uită-te la constructoarele `Teacher` și `Admin` din `academy`, unul sub altul, și la ordinea lui `salary` și `age`. Acolo va intra **Builder**.
 
-Uită-te la constructoarele `Teacher` și `Admin` din `academy`, unul sub altul, și la ordinea lui `salary` și `age`. Acolo intră **Builder**.
+Dar înainte de el vine ceva ce ai scris deja de trei ori, fără să știi cum se cheamă. Lecția 4.
+
+\newpage
+
+# Lecția 4 — Decorator
+
+> **Un cuvânt:** comportament adăugat prin împachetare. O clasă care semnează contractul **și ține înăuntru un alt obiect cu același contract**, îl cheamă, și îi ajustează rezultatul. Se pot stivui.
+
+## Nu e o lecție nouă. E un nume pentru ceva ce ai scris deja
+
+Deschide trei fișiere din repo-ul tău, unul sub altul:
+
+| Fișier | Semnează | Ține înăuntru | Ce adaugă |
+|---|---|---|---|
+| `ex1/Models/LivrareCuReducere.cs` | `ILivrareStrategie` | `ILivrareStrategie` | scade un procent |
+| `ex6/Models/ComisionCuPlafon.cs` | `IComision` | `IComision` | taie la un maxim |
+| `ex6/Models/ComisionCuBonus.cs` | `IComision` | `IComision` | adaugă o sumă fixă |
+
+Toate trei au **aceeași formă**: implementează un contract și, în același timp, țin o instanță a aceluiași contract, pe care o cheamă și al cărei rezultat îl transformă.
+
+```csharp
+public decimal Calculeaza(decimal valoareVanzare)
+{
+    return strategie.Calculeaza(valoareVanzare) + Bonus;
+}
+```
+
+Asta e un **Decorator**, complet și funcțional. L-ai scris singur, la S3 din caiet, care era marcat `[provocare]` — iar întrebarea de la finalul exercițiului îți spunea deja că îi vom pune numele la lecția asta.
+
+## De ce merită un nume separat de Strategy
+
+Structural seamănă: contract, mai multe clase, contextul nu știe ce ține. Diferența e **cine e înăuntru**.
+
+| | Strategy | Decorator |
+|---|---|---|
+| Ce ține clasa | contextul ține **strategia** | decoratorul ține **un alt obiect de același tip cu el** |
+| Câte niveluri | unul | oricâte, stivuite |
+| Ce face cu ce ține | îl întreabă, atât | îl întreabă **și îi modifică răspunsul** |
+| Cine îl vede | contextul știe că are o strategie | apelantul **nu știe** că e împachetat |
+
+Ultima linie e miezul. În `Testare6` ai scris:
+
+```csharp
+ComisionCuPlafon plafon = new(200.00m, new ComisionProcent(20));
+ComisionCuBonus bonus = new(50.00m, plafon);
+vanzare.SchimbaComision(bonus);
+```
+
+`Vanzare` primește un `IComision` și îl întreabă „cât e comisionul?". Nu are idee că în spate sunt **trei** obiecte legate în lanț. Fiecare decorator e transparent pentru cel din afară — și exact de-aia se pot stivui oricât.
+
+## Cele trei roluri
+
+| Rol | În exercițiu | Ce face |
+|---|---|---|
+| **Component** (contractul) | `IComision` | operația pe care o adaugă și cel decorat, și decoratorul |
+| **ConcreteComponent** | `ComisionProcent`, `ComisionFix` | fac treaba de bază, nu împachetează pe nimeni |
+| **Decorator** | `ComisionCuPlafon`, `ComisionCuBonus` | semnează contractul, ține un `IComision`, îi ajustează rezultatul |
+
+```
+        Vanzare  (apelantul)
+             |
+             |  vede doar IComision
+             v
+     ComisionCuBonus  (decorator)   ---> +50
+             |
+             v
+     ComisionCuPlafon (decorator)   ---> min(x, 200)
+             |
+             v
+     ComisionProcent  (component)   ---> 20% din 1500 = 300
+```
+
+Citește-l de jos în sus: `300` → `min(300, 200) = 200` → `200 + 50 = 250`. Exact ce scrie în output.
+
+## Ce ți-a lipsit din toate trei
+
+Fiecare decorator al tău **își pierde identitatea a ce împachetează**:
+
+```csharp
+public string Nume { get; } = "Cu bonus";
+```
+
+De-aia în output vezi `Cu bonus: 250.00` și nu poți spune ce e dedesubt. Un decorator adevărat compune și descrierea, nu doar calculul:
+
+```csharp
+public string Nume => strategie.Nume + " + bonus";
+```
+
+Cu schimbarea asta, aceeași rulare scrie `Procent + plafon + bonus: 250.00` — și lanțul devine vizibil fără să te uiți în cod. **Trei linii, în trei fișiere.** Asta e toată tema lecției.
+
+## Mecanismul de dedesubt
+
+1. **Aceeași interfață în două roluri.** Decoratorul e în același timp *implementare* a contractului și *client* al lui. De-aia poate sta oriunde stă un obiect obișnuit — inclusiv înăuntrul altui decorator.
+2. **Compunere la runtime, nu la compilare.** Cu moștenire ai avea nevoie de o clasă pentru fiecare combinație: `ComisionProcentCuPlafon`, `ComisionProcentCuPlafonSiBonus`… Cu decoratori, combinațiile se fac din obiecte, în momentul construirii. Trei decoratori dau opt combinații fără nicio clasă în plus.
+3. **Ordinea contează.** `Bonus(50, Plafon(200, x))` dă `250`. `Plafon(200, Bonus(50, x))` dă `200`. Aceleași piese, alt rezultat — pentru că fiecare decorator vede doar ce iese din cel de sub el.
+
+Punctul 3 e cel care se uită. Un lanț de decoratori nu e o mulțime, e o **ordine**.
+
+## Când îl folosești
+
+- Vrei să **adaugi** ceva peste un comportament existent, fără să atingi clasa care îl face.
+- Ai nevoie de **combinații** de adăugiri, nu de o listă fixă.
+- Apelantul nu trebuie să afle că s-a schimbat ceva — semnătura rămâne aceeași.
+- Adăugirea e o **preocupare transversală**: jurnalizare, cache, reîncercare, limitare, validare.
+
+## Când NU îl folosești
+
+- Ai **o singură** adăugire și nu se întrevăd altele: pune-o în clasa de bază și mergi mai departe.
+- Adăugirea are nevoie să știe **ce anume** decorează (`if (component is ComisionFix)`) — atunci nu e decorator, e altceva.
+- Lanțul crește peste 3–4 niveluri: depanarea devine grea, fiindcă stack trace-ul arată zece cadre pentru un singur apel.
+- Ai nevoie ca **mai mulți** să reacționeze independent la același eveniment — aia e Observer. Decorator schimbă *ce face* operația; Observer *anunță* că s-a întâmplat ceva.
+
+## Capcane frecvente
+
+- **Decorator care nu deleagă.** Dacă înăuntru nu apare niciun apel către obiectul împachetat, ai scris o strategie obișnuită cu un câmp nefolosit.
+- **Identitate pierdută.** Exact ce ai acum: `Nume` hardcodat. Compune-l, altfel lanțul e invizibil.
+- **Câmpul nevalidat.** `ComisionCuPlafon` verifică `comisionMax < 0`, `ComisionCuBonus` nu verifică nimic. Clase-frați scrise în aceeași ședință, una divergează — tiparul tău recurent.
+- **Ordine presupusă.** Dacă rezultatul depinde de ordine (și depinde), scrie într-un test ambele variante, nu doar pe cea care-ți iese bine.
+
+## Legătura cu ce urmează
+
+Decorator adaugă comportament **păstrând** contractul. Rămâne cazul vecin: ai un obiect care face exact ce-ți trebuie, dar **cu altă semnătură** — o bibliotecă străină, un format nou. Acolo intră **Adapter**, care nu adaugă nimic, doar traduce.
+
+Iar în `academy`, `ITextMapper<T>` e locul unde le vei vedea pe amândouă: un decorator care validează linia înainte s-o dea mai departe, și un adaptor care pune JSON în spatele aceleiași interfețe.
 
 ---
 
-*Document viu — crește cu fiecare lecție. Rămase: State, Decorator, Adapter, Builder, Singleton.*
+*Document viu — crește cu fiecare lecție. Rămase: State, Adapter, Builder, Singleton.*
