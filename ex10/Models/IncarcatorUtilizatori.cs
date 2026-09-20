@@ -16,7 +16,30 @@ namespace DesignPatterns.ex10.Models
 
         public Utilizator[] Incarca(string[] linii)
         {
-            throw new NotImplementedException();
+            Utilizator[] utilizatori = new Utilizator[linii.Length];
+
+            for(int i = 0; i < linii.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(linii[i])) continue;
+
+                string[] campuri = linii[i].Split(',');
+                string tip = campuri[0].Trim();
+
+                for (int j = 0; j < fabrici.Length; j++) 
+                {
+                    if (fabrici[j].Tip == tip) 
+                    {
+                        utilizatori[i] = fabrici[j].Creeaza(campuri);
+                    }
+                }
+
+                if (utilizatori[i] == null)
+                {
+                    throw new FormatException($"Unknown user type: '{tip}'");
+                }
+            }
+
+            return utilizatori;
         }
     }
 }

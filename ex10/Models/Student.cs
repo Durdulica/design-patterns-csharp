@@ -16,7 +16,7 @@ namespace DesignPatterns.ex10.Models
 
         public override string Descriere()
         {
-            throw new NotImplementedException();
+            return $"Student: {Nume}, {Prenume}, {An}";
         }
     }
 }

@@ -17,11 +17,11 @@
            
             for (int i = 0; i < parola.Length; i++)
             {
-                if (digit == false && Char.IsDigit(parola[i]))
+                if (!digit && Char.IsDigit(parola[i]))
                 {
                     digit = true;
                 }
-                if (bigLetter == false && Char.IsUpper(parola[i]))
+                if (!bigLetter && Char.IsUpper(parola[i]))
                 {
                     bigLetter = true;
                 }

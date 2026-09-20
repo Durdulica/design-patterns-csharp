@@ -11,21 +11,17 @@ namespace DesignPatterns.ex5
             PoliticaSimpla politica = new();
             CampParola campParola = new CampParola(politica);
 
-            Console.Write(politica.Nume + ": ");
-            campParola.Verifica(parola);
+            Console.Write(politica.Nume + ": " + campParola.Verifica(parola));
 
             PoliticaMedie medie = new();
             campParola.SchimbaPolitica(medie);
-            Console.Write(medie.Nume + ": ");
-            campParola.Verifica(parola);
+            Console.Write(medie.Nume + ": " + campParola.Verifica(parola));
 
             PoliticaPuternica puternica = new();
             campParola.SchimbaPolitica(puternica);
-            Console.Write(puternica.Nume + ": ");
-            campParola.Verifica(parola);
-
-            Console.Write(puternica.Nume + ": ");
-            campParola.Verifica(parolaPuternica);
+            Console.Write(puternica.Nume + ": " + campParola.Verifica(parola));
+            
+            Console.WriteLine(puternica.Nume + ": " + campParola.Verifica(parola));
         }
     }
 }

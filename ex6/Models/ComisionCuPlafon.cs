@@ -3,7 +3,6 @@
     public class ComisionCuPlafon : IComision
     {
         private IComision strategie;
-        public string Nume { get; } = "Cu plafon";
         public decimal ComisionMax { get; private set; }
 
         public ComisionCuPlafon(decimal comisionMax, IComision strategie)
@@ -20,6 +19,8 @@
             ComisionMax = comisionMax;
             this.strategie = strategie;
         }
+
+        public string Nume => strategie.Nume + " + cu plafon";
 
         public decimal Calculeaza(decimal valoareVanzare)
         {

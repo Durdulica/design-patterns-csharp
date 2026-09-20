@@ -7,14 +7,14 @@ namespace DesignPatterns.ex3
         public Testare3()
         {
             string[] date =
-            {
-                "bia",
-                "este",
-                "o prietena",
-                "foarte buna"
-            };
+            [
+                "rand1",
+                "rand2",
+                "rand3",
+                "rand4"
+            ];
 
-            Raport raport = new Raport(date, new ExportCsv());
+            Raport raport = new(date, new ExportCsv());
 
             Console.WriteLine(raport.NumeFormat + ":\n" + raport.Genereaza());
 

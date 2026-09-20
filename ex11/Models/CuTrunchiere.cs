@@ -21,11 +21,21 @@ namespace DesignPatterns.ex11.Models
             this.interior = interior;
         }
 
-        public string Nume => throw new NotImplementedException();
+        public string Nume => interior.Nume + " + trunchiere";
 
         public void Trimite(string mesaj)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(mesaj))
+            {
+                throw new ArgumentException("Message cannot be empty");
+            }
+
+            if (mesaj.Length >= lungimeMaxima)
+            {
+                mesaj = mesaj.Substring(0, lungimeMaxima - 1);
+            }
+         
+            Console.WriteLine(Nume + ": " + mesaj);
         }
     }
 }

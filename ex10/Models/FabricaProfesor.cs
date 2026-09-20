@@ -6,7 +6,7 @@ namespace DesignPatterns.ex10.Models
 
         public Utilizator Creeaza(string[] campuri)
         {
-            throw new NotImplementedException();
+            return new Profesor(campuri[1], campuri[2], campuri[3]);
         }
     }
 }

@@ -8,11 +8,8 @@
 
         public Raport(string[] date, IExportStrategie strategie)
         {
-            if(date == null)
-            {
-                throw new ArgumentNullException(nameof(date));
-            }
-            if(strategie == null)
+            ArgumentNullException.ThrowIfNull(date);
+            if (strategie == null)
             {
                 throw new ArgumentNullException(nameof(strategie), "The export type cannot be null");
             }

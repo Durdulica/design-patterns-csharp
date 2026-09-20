@@ -2,7 +2,6 @@
 {
     public class LivrareCuReducere : ILivrareStrategie
     {
-        public string Nume => "Reducere";
         public decimal Procent { get; }
 
         private ILivrareStrategie strategie;
@@ -17,6 +16,8 @@
             Procent = procent;
             this.strategie = strategie;
         }
+
+        public string Nume => strategie.Nume + "Reducere";
 
         public decimal CalculeazaCost(decimal greutateKg, decimal distantaKm)
         {

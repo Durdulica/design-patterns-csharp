@@ -14,11 +14,15 @@ namespace DesignPatterns.ex11.Models
             this.interior = interior;
         }
 
-        public string Nume => throw new NotImplementedException();
+        public string Nume => interior.Nume + " + jurnal";
 
         public void Trimite(string mesaj)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(mesaj))
+            {
+                throw new ArgumentException("Message cannot be empty");
+            }
+            Console.WriteLine($"[JURNAL] catre {interior.Nume}: {mesaj}");
         }
     }
 }

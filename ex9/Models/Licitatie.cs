@@ -3,6 +3,9 @@
     public class Licitatie
     {
         private readonly IParticipant[] participanti;
+        private bool difuzez;
+        private decimal ofertaInAsteptare;
+        private bool areOfertaInAsteptare;
 
         public decimal PretCurent {  get; private set; }
 
@@ -10,14 +13,37 @@
         {
             ArgumentNullException.ThrowIfNull(participanti);
 
+            if (pret <= PretCurent)
+            {
+                throw new ArgumentException("The sum is lesser or equal to the current auction bid");
+            }
+
+            if (difuzez)
+            {
+                ofertaInAsteptare = pret;
+                areOfertaInAsteptare = true;
+                return;
+            }
+
+            difuzez = true;
             PretCurent = pret;
             this.participanti = participanti;
 
-            /*for(int i = 0; i < participanti.Length; i++)
+            do
             {
-                var test = participanti[i] as AutoLicitator; // ???
-                test.Licitatie = this;
-            }*/
+                areOfertaInAsteptare = false;
+                for (int i = 0; i < participanti.Length; i++)
+                {
+                    participanti[i].OfertaNoua(PretCurent);
+                }
+
+                if (areOfertaInAsteptare)
+                {
+                    PretCurent = ofertaInAsteptare;
+                }
+            } while (areOfertaInAsteptare);
+
+            difuzez = false;
         }
 
         public void Liciteaza(decimal suma)
