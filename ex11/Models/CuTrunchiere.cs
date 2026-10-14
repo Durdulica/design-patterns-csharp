@@ -21,7 +21,7 @@ namespace DesignPatterns.ex11.Models
             this.interior = interior;
         }
 
-        public string Nume => interior.Nume + " + trunchiere";
+        public string Nume => interior.Nume + " + cu trunchiere: ";
 
         public void Trimite(string mesaj)
         {
@@ -35,7 +35,7 @@ namespace DesignPatterns.ex11.Models
                 mesaj = mesaj.Substring(0, lungimeMaxima - 1);
             }
          
-            Console.WriteLine(Nume + ": " + mesaj);
+            interior.Trimite(Nume + mesaj);
         }
     }
 }

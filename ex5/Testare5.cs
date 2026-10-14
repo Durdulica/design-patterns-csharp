@@ -19,9 +19,9 @@ namespace DesignPatterns.ex5
 
             PoliticaPuternica puternica = new();
             campParola.SchimbaPolitica(puternica);
-            Console.Write(puternica.Nume + ": " + campParola.Verifica(parola));
-            
             Console.WriteLine(puternica.Nume + ": " + campParola.Verifica(parola));
+            
+            Console.WriteLine(puternica.Nume + ": " + campParola.Verifica(parolaPuternica));
         }
     }
 }

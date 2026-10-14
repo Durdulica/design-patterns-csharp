@@ -21,7 +21,7 @@ namespace DesignPatterns.ex11.Models
             this.interior = interior;
         }
 
-        public string Nume => interior.Nume + " " + prefix;
+        public string Nume => prefix;
 
         public void Trimite(string mesaj)
         {
@@ -30,7 +30,7 @@ namespace DesignPatterns.ex11.Models
                 throw new ArgumentException("Message cannot be empty");
             }
 
-            Console.WriteLine(Nume + ": " + mesaj);
+            interior.Trimite(Nume + mesaj);
         }
     }
 }

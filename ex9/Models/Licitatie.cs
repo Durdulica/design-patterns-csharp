@@ -18,17 +18,20 @@
                 throw new ArgumentException("The sum is lesser or equal to the current auction bid");
             }
 
+            PretCurent = pret;
+            this.participanti = participanti;            
+        }
+
+        public void Deschide()
+        {
             if (difuzez)
             {
-                ofertaInAsteptare = pret;
+                ofertaInAsteptare = PretCurent;
                 areOfertaInAsteptare = true;
                 return;
             }
 
             difuzez = true;
-            PretCurent = pret;
-            this.participanti = participanti;
-
             do
             {
                 areOfertaInAsteptare = false;

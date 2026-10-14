@@ -17,8 +17,7 @@ namespace DesignPatterns.ex9
             Licitatie licitatie = new(10,participanti);
             auto1.Licitatie = licitatie;
             auto2.Licitatie = licitatie;
-
-            licitatie.Liciteaza(15);
+            licitatie.Deschide();
         }
     }
 }

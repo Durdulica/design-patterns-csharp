@@ -2,7 +2,7 @@ namespace DesignPatterns.ex11.Models
 {
     public class NotificatorSms : INotificator
     {
-        public const int LungimeMaxima = 160;
+        public const int LungimeMaxima = 1600;
 
         public string Nume => "SMS";
 

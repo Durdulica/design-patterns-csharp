@@ -30,6 +30,7 @@ namespace DesignPatterns.ex10.Models
                     if (fabrici[j].Tip == tip) 
                     {
                         utilizatori[i] = fabrici[j].Creeaza(campuri);
+                        break;
                     }
                 }
 
